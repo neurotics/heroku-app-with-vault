@@ -4,9 +4,18 @@ import Logo from '../components/logo'
 
 export default class extends React.Component {
   static async getInitialProps({ req }) {
-    return {
-      secretsFromVault: JSON.parse(process.env.app_secrets)
+    let secretsData, result
+    try {
+      // Get secrets from environment variable
+      secretsData = process.env.app_secrets
+      // Load the single-quoted string as string variable
+      secretsData = ( new Function("return " + secretsData) )()
+      // Parse the variable's contents as JSON
+      result = { secretsFromVault: JSON.parse(secretsData) }
+    } catch (error) {
+      result = { secretsError: `${error.message}\nSecret data: ${secretsData}` }
     }
+    return result
   }
 
   render() {
@@ -35,9 +44,9 @@ export default class extends React.Component {
         }
       `}</style>
 
-      <h1><Logo style={{ height: '1.45rem' }}/> Secrets from Vault</h1>
+      <h1>🔐 Secrets from Vault</h1>
 
-      <pre>{JSON.stringify(this.props.secretsFromVault, null, 2)}</pre>
+      <pre>{this.props.secretsFromVault ? JSON.stringify(this.props.secretsFromVault, null, 2) : `Error: ${this.props.secretsError}`}</pre>
     </div>
   }
 }
